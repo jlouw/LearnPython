@@ -2,7 +2,7 @@ import csv
 
 print("\n********Make a list of new names********")
 
-newNamesFile = open(r'C:\Users\Jean\Desktop\CID\newnames.txt')
+newNamesFile = open(r'G:\Users\Jean\Documents\GitHub\LearnPython\newnames.txt')
 newNames = []
 
 for line in newNamesFile.readlines():
@@ -14,14 +14,15 @@ for line in newNamesFile.readlines():
 
 
 print("\n********Make a list of old names********")
-
-yesVotersFile = open(r'C:\Users\Jean\Desktop\CID\yesVoters.csv', 'r+')
+yesPath = "G:\\Users\\Jean\Documents\\GitHub\\LearnPython\\yesVoters.csv"
+yesVotersFile = open(yesPath, 'r+')
 yesVotersFileReader = csv.reader(yesVotersFile)
 yesNames = []
 
 for rowString in yesVotersFileReader:
     yesNames.append(rowString)
     print(yesNames[-1])
+
 
 print("\n********Sorted********")
 
