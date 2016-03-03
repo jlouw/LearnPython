@@ -22,7 +22,6 @@ yesNames = []
 for rowString in yesVotersFileReader:
     yesNames.append(rowString)
     print(yesNames[-1])
-    print("Hi")
 
 print("\n********Sorted********")
 
