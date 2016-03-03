@@ -1,7 +1,10 @@
 import csv
 
+NEW_FILE_PATH = "G:\\Users\\Jean\\Documents\\GitHub\\LearnPython\\newnames.txt"
+YES_FILE_PATH = "G:\\Users\\Jean\Documents\\GitHub\\LearnPython\\yesVoters.csv"
+
 print("\nRead new name txt file into a LIST:")
-new_file = open(r'G:\Users\Jean\Documents\GitHub\LearnPython\newnames.txt')
+new_file = open(NEW_FILE_PATH)
 new_names = []
 
 for line in new_file.readlines():
@@ -12,8 +15,7 @@ for line in new_file.readlines():
     print(new_names[-1])
 
 print("\nRead csv file into a LIST:")
-yes_path = "G:\\Users\\Jean\Documents\\GitHub\\LearnPython\\yesVoters.csv"
-yes_file = open(yes_path, 'r+')
+yes_file = open(YES_FILE_PATH, 'r+')
 yes_names = []
 
 for row in csv.reader(yes_file):
