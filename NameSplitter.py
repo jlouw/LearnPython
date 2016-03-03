@@ -1,52 +1,43 @@
 import csv
 
-print("\n********Read new name txt file into a LIST********")
+print("\nRead new name txt file into a LIST:")
+new_file = open(r'G:\Users\Jean\Documents\GitHub\LearnPython\newnames.txt')
+new_names = []
 
-newNamesFile = open(r'G:\Users\Jean\Documents\GitHub\LearnPython\newnames.txt')
-newNames = []
-
-for line in newNamesFile.readlines():
-    fullnames = line.partition(' ')
-    name = fullnames[0]
+for line in new_file.readlines():
+    names_and_surname = line.partition(' ')
+    name = names_and_surname[0]
     rest = line.replace(name, "").replace('\\n', "").strip()
-    newNames.append([name, rest])
-    print(newNames[-1])
+    new_names.append([name, rest])
+    print(new_names[-1])
 
+print("\nRead csv file into a LIST:")
+yes_path = "G:\\Users\\Jean\Documents\\GitHub\\LearnPython\\yesVoters.csv"
+yes_file = open(yes_path, 'r+')
+yes_names = []
 
-print("\n********Read csv file into a LIST********")
-yesPath = "G:\\Users\\Jean\Documents\\GitHub\\LearnPython\\yesVoters.csv"
-yesVotersFile = open(yesPath, 'r+')
-yesVotersFileReader = csv.reader(yesVotersFile)
-yesNames = []
+for row in csv.reader(yes_file):
+    yes_names.append(row)
+    print(yes_names[-1])
 
-for rowString in yesVotersFileReader:
-    yesNames.append(rowString)
-    print(yesNames[-1])
+print("\nSort the LIST from the csv file:")
+yes_names.sort(key=lambda x: x[1])
 
+for row in yes_names:
+    print(row)
 
-print("\n********Sort the LIST from the csv file********")
+print("\nFind diff between csn file LIST and txt file LIST:")
+diff = set(map(tuple, new_names)) - set(map(tuple, yes_names))
+print(("Yes: %i, New: %i, Diff %i") % (len(yes_names), len(new_names), len(diff)))
 
-yesNames.sort(key=lambda x: x[1])
+for row in diff:
+    print(row)
 
-for rowString in yesNames:
-    print(rowString)
-
-
-print("\n********Find diff between csn file LIST and txt file LIST********")
-
-diff = set(map(tuple, newNames)) - set(map(tuple, yesNames))
-print(("Yes: %i, New: %i, Diff %i") % (len(yesNames), len(newNames), len(diff)))
-
-for rowString in diff:
-    print(rowString)
-
-
-print("\n********Write the unique names to the csv file************")
-
-yesWriter = csv.writer(yesVotersFile, delimiter=',', lineterminator='\n')
+print("\nWrite the unique names to the csv file\n")
+writer = csv.writer(yes_file, delimiter=',', lineterminator='\n')
 
 for newPerson in diff:
-    yesWriter.writerow(newPerson)
+    writer.writerow(newPerson)
 
-newNamesFile.close()
-yesVotersFile.close()
+new_file.close()
+yes_file.close()
