@@ -1,6 +1,6 @@
 import csv
 
-print("\n********Make a list of new names********")
+print("\n********Read new name txt file into a LIST********")
 
 newNamesFile = open(r'G:\Users\Jean\Documents\GitHub\LearnPython\newnames.txt')
 newNames = []
@@ -13,7 +13,7 @@ for line in newNamesFile.readlines():
     print(newNames[-1])
 
 
-print("\n********Make a list of old names********")
+print("\n********Read csv file into a LIST********")
 yesPath = "G:\\Users\\Jean\Documents\\GitHub\\LearnPython\\yesVoters.csv"
 yesVotersFile = open(yesPath, 'r+')
 yesVotersFileReader = csv.reader(yesVotersFile)
@@ -24,7 +24,7 @@ for rowString in yesVotersFileReader:
     print(yesNames[-1])
 
 
-print("\n********Sorted********")
+print("\n********Sort the LIST from the csv file********")
 
 yesNames.sort(key=lambda x: x[1])
 
@@ -32,22 +32,16 @@ for rowString in yesNames:
     print(rowString)
 
 
-print("\n********Get list of unique new names********")
+print("\n********Find diff between csn file LIST and txt file LIST********")
 
-newNamesTuple = set(map(tuple, newNames))
-yesVotersTuple = set(map(tuple, yesNames))
-
-diff = newNamesTuple - yesVotersTuple
-
-print("yes " + str(len(yesVotersTuple)))
-print("new " + str(len(newNamesTuple)))
-print("diff " + str(len(diff)))
+diff = set(map(tuple, newNames)) - set(map(tuple, yesNames))
+print(("Yes: %i, New: %i, Diff %i") % (len(yesNames), len(newNames), len(diff)))
 
 for rowString in diff:
     print(rowString)
 
 
-print("\n********Add new names to yesVoters************")
+print("\n********Write the unique names to the csv file************")
 
 yesWriter = csv.writer(yesVotersFile, delimiter=',', lineterminator='\n')
 
