@@ -1,5 +1,4 @@
 import csv
-import sys
 
 FILE_PATH = r"\\OLIFANT\Documents\GitHub\LearnPython"
 
@@ -21,11 +20,11 @@ def check_name(name_check):
     for name, surname in read_csv_file():
         print()
         print(name + " " + surname, end="")
-        if (name_check == surname):
+        if (name_check.lower() == surname.lower()):
             print("    +++++ Possible match +++++++", end="")
 
 
 '''
 Below here receives input from the command line
 '''
-check_name("Pelser")
+check_name("du Toit")
