@@ -4,8 +4,24 @@ import sys
 FILE_PATH = r"\\OLIFANT\Documents\GitHub\LearnPython"
 
 
+def read_csv_file():
+    yes_file = open(FILE_PATH + r"\yesVoters.csv", 'r+')
+    yes_names = []
+
+    for row in csv.reader(yes_file):
+        yes_names.append(row)
+        print(yes_names[-1])
+
+    yes_file.close()
+    return yes_names
+
+
 def check_name(name):
-    return
+    print("Name to check: " + name)
+    if name in read_csv_file():
+        print("Name already in list")
+    else:
+        print("Name not in list yet")
 
 
 def import_names():
@@ -22,12 +38,7 @@ def import_names():
         print(new_names[-1])
 
     print("\nRead csv file into a LIST:")
-    yes_file = open(FILE_PATH + r"\yesVoters.csv", 'r+')
-    yes_names = []
-
-    for row in csv.reader(yes_file):
-        yes_names.append(row)
-        print(yes_names[-1])
+    yes_names = read_csv_file()
 
     print("\nSort the LIST from the csv file:")
     yes_names.sort(key=lambda x: x[1])
@@ -43,24 +54,16 @@ def import_names():
         print(row)
 
     print("\nWrite the unique names to the csv file\n")
+    yes_file = open(FILE_PATH + r"\yesVoters.csv", 'r+')
     writer = csv.writer(yes_file, delimiter=',', lineterminator='\n')
 
     for newPerson in diff:
         writer.writerow(newPerson)
 
     new_file.close()
-    yes_file.close()
+
 
 '''
 Below here receives input from the command line
 '''
-arguments = str(sys.argv).split()
-
-print("Args: " + str(sys.argv))
-print(arguments)
-
-if (sys.argv[1] == 'import'):
-    print("Here")
-    import_names()
-elif (sys.argv[1] == 'check'):
-    check_name(arguments[2])
+import_names()
