@@ -1,5 +1,4 @@
 import csv
-import sys
 
 FILE_PATH = r"\\OLIFANT\Documents\GitHub\LearnPython"
 
