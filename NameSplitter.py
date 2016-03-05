@@ -21,10 +21,9 @@ def check_name(name):
         print("Name already in list")
     else:
         print("Name not in list yet")
-
+        
 
 def import_names():
-
     print("\nRead new name txt file into a LIST:")
     new_file = open(FILE_PATH + r"\newnames.txt")
     new_names = []
