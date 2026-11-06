@@ -47,3 +47,7 @@ Temporary Items
 .apdisk
 newnames.txt
 *.csv
+
+# Python bytecode cache
+__pycache__/
+*.pyc
