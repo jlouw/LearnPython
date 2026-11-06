@@ -9,7 +9,10 @@ Rules
 - The ball rebounds off the rackets and off the top and bottom sidelines.
 - Where the ball hits the racket changes its angle: near the edge of the
   racket sends it off steeply, the middle sends it back flat.
-- The ball speeds up a little with every hit.
+- The ball speeds up a little (2%) with every hit.
+- SUPER SHOT: hit the ball on the dot in the exact middle of the racket and
+  it shoots back very fast. The other player's return goes back to normal
+  rally speed.
 - If the ball goes out past a player's edge, the OTHER player wins the point.
 - First to 7 points wins, but you must win by 2 (8-6, 9-7, ...).
 
@@ -19,6 +22,7 @@ Needs pygame:  pip install pygame
 import math
 import random
 import sys
+from collections import deque
 
 import pygame
 
@@ -42,8 +46,14 @@ RACKET_X_OFFSET = 50           # distance of racket from the window edge
 
 BALL_RADIUS = 9
 BALL_START_SPEED = 420         # pixels per second
-BALL_SPEEDUP = 1.06            # multiplied in on every racket hit
+BALL_SPEEDUP = 1.02            # multiplied in on every racket hit (2% faster)
 BALL_MAX_SPEED = 1000
+
+# Super shot: hitting the ball in the exact middle of the racket
+SWEET_SPOT = 0.1               # within 10% of the centre (about +/- 4 px)
+SUPER_BOOST = 1.8              # super shot is 1.8x the normal rally speed
+SUPER_MAX_SPEED = 1700
+SUPER_TEXT_TIME = 0.9          # seconds the "SUPER SHOT!" text stays up
 MAX_BOUNCE_ANGLE = math.radians(60)
 
 PAUSE_AFTER_POINT = 1.0        # seconds before the next serve
@@ -56,6 +66,7 @@ NET = (230, 230, 230)
 NET_SHADOW = (20, 50, 90)
 BALL_COLOUR = (215, 240, 60)
 BALL_SHADOW = (20, 40, 70)
+SUPER_COLOUR = (255, 120, 30)  # fiery trail on a super shot
 SCORE_BG = (20, 28, 40)
 TEXT = (240, 240, 240)
 P1_COLOUR = (230, 80, 70)
@@ -121,6 +132,8 @@ class Racket:
                          (inner.centerx, inner.top + 3),
                          (inner.centerx, inner.bottom - 3))
         pygame.draw.ellipse(surface, self.colour, head, 3)
+        # Sweet spot: hit the ball here for a super shot
+        pygame.draw.circle(surface, SUPER_COLOUR, head.center, 3)
 
 
 class Ball:
@@ -129,6 +142,10 @@ class Ball:
         self.y = (COURT_TOP + COURT_BOTTOM) / 2
         self.vx = 0.0
         self.vy = 0.0
+        self.rally_speed = BALL_START_SPEED  # normal speed, grows 2% per hit
+        self.is_super = False                # True while a super shot is flying
+        self.super_text_timer = 0.0
+        self.trail = deque(maxlen=10)        # recent positions, for the trail
 
     def serve(self, towards_right):
         """Start from the centre, heading towards one player at a gentle angle."""
@@ -136,17 +153,29 @@ class Ball:
         self.y = random.uniform(COURT_TOP + 80, COURT_BOTTOM - 80)
         angle = random.uniform(-math.radians(30), math.radians(30))
         direction = 1 if towards_right else -1
+        self.rally_speed = BALL_START_SPEED
+        self.is_super = False
+        self.trail.clear()
         self.vx = direction * BALL_START_SPEED * math.cos(angle)
         self.vy = BALL_START_SPEED * math.sin(angle)
 
     def stop(self):
         self.vx = self.vy = 0.0
+        self.is_super = False
+        self.super_text_timer = 0.0
+        self.trail.clear()
 
     @property
     def speed(self):
         return math.hypot(self.vx, self.vy)
 
     def update(self, dt, rackets):
+        self.super_text_timer = max(0.0, self.super_text_timer - dt)
+        if self.is_super:
+            self.trail.append((self.x, self.y))
+        elif self.trail:
+            self.trail.popleft()
+
         old_x = self.x
         self.x += self.vx * dt
         self.y += self.vy * dt
@@ -190,7 +219,19 @@ class Ball:
         offset = max(-1.0, min(1.0, offset))
         angle = offset * MAX_BOUNCE_ANGLE
 
-        new_speed = min(self.speed * BALL_SPEEDUP, BALL_MAX_SPEED)
+        # Every hit makes the rally 2% faster
+        self.rally_speed = min(self.rally_speed * BALL_SPEEDUP, BALL_MAX_SPEED)
+
+        if abs(offset) <= SWEET_SPOT:
+            # Perfect hit in the middle: super shot!
+            new_speed = min(self.rally_speed * SUPER_BOOST, SUPER_MAX_SPEED)
+            self.is_super = True
+            self.super_text_timer = SUPER_TEXT_TIME
+        else:
+            # Normal hit. A super shot that gets returned slows back down.
+            new_speed = self.rally_speed
+            self.is_super = False
+
         direction = 1 if racket.faces_right else -1
         self.vx = direction * new_speed * math.cos(angle)
         self.vy = new_speed * math.sin(angle)
@@ -199,7 +240,14 @@ class Ball:
         self.x = face + direction * BALL_RADIUS
 
     def draw(self, surface):
+        # Fiery trail behind a super shot (older points are smaller)
+        for i, (tx, ty) in enumerate(self.trail):
+            size = max(2, round(BALL_RADIUS * (i + 1) / len(self.trail)))
+            pygame.draw.circle(surface, SUPER_COLOUR, (round(tx), round(ty)), size)
+
         cx, cy = round(self.x), round(self.y)
+        if self.is_super:
+            pygame.draw.circle(surface, SUPER_COLOUR, (cx, cy), BALL_RADIUS + 4)
         pygame.draw.circle(surface, BALL_SHADOW, (cx + 4, cy + 5), BALL_RADIUS)
         pygame.draw.circle(surface, BALL_COLOUR, (cx, cy), BALL_RADIUS)
         # The curved seam of a tennis ball
@@ -285,6 +333,13 @@ def draw_scoreboard(surface, fonts, score1, score2, message):
     status = small.render(message, True, (180, 190, 200))
     surface.blit(status, (WIDTH // 2 - status.get_width() // 2,
                           SCORE_BAR_HEIGHT - status.get_height() - 6))
+
+
+def draw_super_text(surface, fonts):
+    text = fonts[1].render("SUPER SHOT!", True, SUPER_COLOUR)
+    rect = text.get_rect(center=(WIDTH // 2, COURT_TOP + 40))
+    pygame.draw.rect(surface, SCORE_BG, rect.inflate(24, 10), border_radius=8)
+    surface.blit(text, rect)
 
 
 def draw_centre_message(surface, fonts, title, subtitle):
@@ -419,6 +474,8 @@ def main():
             r.draw(screen)
         if state == "playing":
             ball.draw(screen)
+            if ball.super_text_timer > 0:
+                draw_super_text(screen, fonts)
 
         if match_winner:
             message = f"PLAYER {match_winner} WINS {max(score1, score2)}-{min(score1, score2)}"
